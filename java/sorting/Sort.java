@@ -3,15 +3,15 @@ import java.nio.file.*;
 import java.util.*;
 
 public final class Sort {
-   private interface Sorter {
-      List<String> sort(List<String> listToSort) throws Exception;
+   private interface Sorter<K extends Comparable<K>> {
+      List<K> sort(List<K> listToSort) throws Exception;
       String type();
    }
 
-   private class BubbleSorter implements Sorter {
-      public String type() { return "B"; };
+   private class BubbleSorter<K extends Comparable<K>> implements Sorter<K> {
+      public String type() { return "Bubbl"; }
 
-      public List<String> sort(List<String> listToSort) throws Exception {
+      public List<K> sort(List<K> listToSort) throws Exception {
          if (_verbose) System.out.println("Bubble Sorting");
 
          // sort
@@ -20,9 +20,7 @@ public final class Sort {
             sorted = true;
             for (int i = 0; i < listToSort.size() - 1; i++) {
                if (listToSort.get(i).compareTo(listToSort.get(i+1)) > 0) {
-                  String temp = listToSort.get(i);
-                  listToSort.set(i, listToSort.get(i+1));
-                  listToSort.set(i+1, temp);
+                  swap(listToSort, i, i+1);
                   sorted = false;
                }
             }
@@ -32,18 +30,18 @@ public final class Sort {
       }
    }
 
-   private class SelectionSorter implements Sorter {
-      public String type() { return "S"; };
+   private class SelectionSorter<K extends Comparable<K>> implements Sorter<K> {
+      public String type() { return "Selec"; }
 
-      public List<String> sort(List<String> listToSort) throws Exception {
+      public List<K> sort(List<K> listToSort) throws Exception {
          if (_verbose) System.out.println("Selection Sorting");
 
-         List<String> sortedList = new LinkedList<>(listToSort);
+         List<K> sortedList = new LinkedList<>(listToSort);
 
          // sort
          for (int i = 0; i < sortedList.size(); i++) {
             int minIndex = i;
-            String minValue = sortedList.get(minIndex);
+            K minValue = sortedList.get(minIndex);
             for (int j = i; j < sortedList.size(); j++) {
                if (sortedList.get(j).compareTo(minValue) < 0) {
                   minIndex = j;
@@ -60,17 +58,17 @@ public final class Sort {
       }
    }
 
-   private class InsertionSorter implements Sorter {
-      public String type() { return "I"; };
+   private class InsertionSorter<K extends Comparable<K>> implements Sorter<K> {
+      public String type() { return "Insrt"; }
 
-      public List<String> sort(List<String> listToSort) throws Exception {
+      public List<K> sort(List<K> listToSort) throws Exception {
          if (_verbose) System.out.println("Insertion Sorting");
 
-         List<String> sortedList = new LinkedList<>(listToSort);
+         List<K> sortedList = new LinkedList<>(listToSort);
 
          // sort
          for (int i = 1; i < sortedList.size(); i++) {
-            String currentValue = sortedList.get(i);
+            K currentValue = sortedList.get(i);
             for (int j = 0; j < i; j++) {
                if (currentValue.compareTo(sortedList.get(j)) < 0) {
                   sortedList.remove(i);
@@ -84,29 +82,29 @@ public final class Sort {
       }
    }
 
-   private class MergeSorter implements Sorter {
-      public String type() { return "M"; };
+   private class MergeSorter<K extends Comparable<K>> implements Sorter<K> {
+      public String type() { return "Merge"; }
 
-      public List<String> sort(List<String> listToSort) throws Exception {
+      public List<K> sort(List<K> listToSort) throws Exception {
          if (_verbose) System.out.println("Merge Sorting");
 
          // sort
          return mergeSort(listToSort);
       }
 
-      private List<String> mergeSort(List<String> subList) {
+      private List<K> mergeSort(List<K> subList) {
          if (subList.size() < 2) return subList;
 
-         List<String> left =
+         List<K> left =
             mergeSort(new ArrayList<>(subList.subList(0,                  subList.size() / 2)));
-         List<String> right =
+         List<K> right =
             mergeSort(new ArrayList<>(subList.subList(subList.size() / 2, subList.size()    )));
 
          return merge(left, right);
       }
 
-      private List<String> merge(List<String> left, List<String> right) {
-         List<String> merged = new ArrayList<>(left.size() + right.size());
+      private List<K> merge(List<K> left, List<K> right) {
+         List<K> merged = new ArrayList<>(left.size() + right.size());
 
          int lSize = left.size();
          int rSize = right.size();
@@ -127,13 +125,31 @@ public final class Sort {
       }
    }
 
-   private class HeapSorter implements Sorter {
-      public String type() { return "H"; };
+   private class HeapSorter<K extends Comparable<K>> implements Sorter<K> {
+      public String type() { return "Heaps"; }
 
-      public List<String> sort(List<String> listToSort) throws Exception {
+      public List<K> sort(List<K> listToSort) throws Exception {
          if (_verbose) System.out.println("Heap Sorting");
 
-         List<String> sortedList = listToSort;
+         List<K> sortedList = listToSort;
+
+         // sort
+
+         return sortedList;
+      }
+
+      private int parentIndex(int i) { return Math.floorDiv(i - 1, 2); }
+      private int leftChildIndex(int i) { return (2 * i) + 1; }
+      private int rightChildIndex(int i) { return (2 * i) + 2; }
+   }
+
+   private class QuickSorter<K extends Comparable<K>> implements Sorter<K> {
+      public String type() { return "Quick"; }
+
+      public List<K> sort(List<K> listToSort) throws Exception {
+         if (_verbose) System.out.println("Quick Sorting");
+
+         List<K> sortedList = listToSort;
 
          // sort
 
@@ -141,23 +157,15 @@ public final class Sort {
       }
    }
 
-   private class QuickSorter implements Sorter {
-      public String type() { return "Q"; };
-
-      public List<String> sort(List<String> listToSort) throws Exception {
-         if (_verbose) System.out.println("Quick Sorting");
-
-         List<String> sortedList = listToSort;
-
-         // sort
-
-         return sortedList;
-      }
+   static <K> void swap(List<K> l, int i, int j) {
+      K temp = l.get(i);
+      l.set(i, l.get(j));
+      l.set(j, temp);
    }
 
    private static final int EST_BYTES_PER_LINE = 20;
 
-   private Sorter _sorter = null;
+   private List<Sorter<String>> _sorters = new ArrayList<Sorter<String>>(6);
    private Path _testDir = null;
    private Path _outputDir = null;
    private Map<Path, List<String>> _listsToSort = null;
@@ -181,13 +189,9 @@ public final class Sort {
                   }
 
                   listsToSort.put(testFile, testList);
-
-                  reader.close();
                }
             }
          }
-
-         testDirStream.close();
       }
 
       return listsToSort;
@@ -206,7 +210,6 @@ public final class Sort {
 
          sortedList.stream().forEach(s -> writer.println(s));
 
-         writer.close();
       } catch (IOException ioex) {
          System.out.println("Unexpected error writing output file!");
          System.out.println(ioex);
@@ -216,7 +219,7 @@ public final class Sort {
       return _outputDir.resolve(Paths.get(sortType + "." + testFile.getFileName().toString()));
    }
 
-   private Sort(String algoSpecifier, Path testDir, Path outputDir) throws Exception {
+   private Sort(List<String> algoSpecifier, Path testDir, Path outputDir) throws Exception {
       _testDir = testDir;
       _outputDir = outputDir;
 
@@ -228,36 +231,45 @@ public final class Sort {
 
       _listsToSort = loadTestLists();
 
-      switch (algoSpecifier) {
-         case "-b": {
-            _sorter = new BubbleSorter();
-            break;
-         }
-         case "-s": {
-            _sorter = new SelectionSorter();
-            break;
-         }
-         case "-i": {
-            _sorter = new InsertionSorter();
-            break;
-         }
-         case "-m": {
-            _sorter = new MergeSorter();
-            break;
-         }
-         case "-h": {
-            _sorter = new HeapSorter();
-            break;
-         }
-         case "-q": {
-            _sorter = new QuickSorter();
-            break;
-         }
-         case "--all": {
-            break;
-         }
-         default: {
-            throw new Exception("Invalid argument: " + algoSpecifier);
+      for (String spec : algoSpecifier) {
+         switch (spec) {
+            case "-b": {
+               _sorters.add(new BubbleSorter<String>());
+               break;
+            }
+            case "-s": {
+               _sorters.add(new SelectionSorter<String>());
+               break;
+            }
+            case "-i": {
+               _sorters.add(new InsertionSorter<String>());
+               break;
+            }
+            case "-m": {
+               _sorters.add(new MergeSorter<String>());
+               break;
+            }
+            case "-h": {
+               _sorters.add(new HeapSorter<String>());
+               break;
+            }
+            case "-q": {
+               _sorters.add(new QuickSorter<String>());
+               break;
+            }
+            case "--all": {
+               _sorters.clear();
+               _sorters.add(new BubbleSorter<String>());
+               _sorters.add(new SelectionSorter<String>());
+               _sorters.add(new InsertionSorter<String>());
+               _sorters.add(new MergeSorter<String>());
+               _sorters.add(new HeapSorter<String>());
+               _sorters.add(new QuickSorter<String>());
+               return;
+            }
+            default: {
+               throw new Exception("Invalid argument: " + algoSpecifier);
+            }
          }
       }
    }
@@ -267,27 +279,11 @@ public final class Sort {
          List<String> sortedList;
          long startTimeNanos, endTimeNanos;
 
-         if (_sorter != null) {
+         for (Sorter<String> sorter : _sorters) {
             startTimeNanos = System.nanoTime();
-            sortedList = _sorter.sort(testListEntry.getValue());
+            sortedList = sorter.sort(testListEntry.getValue());
             endTimeNanos = System.nanoTime();
-            writeSortedList(sortedList, testListEntry.getKey(), _sorter.type(), endTimeNanos - startTimeNanos);
-         } else { // --all case
-            Sorter sorters[] = {
-               new BubbleSorter(),
-               new SelectionSorter(),
-               new InsertionSorter(),
-               new MergeSorter(),
-               new HeapSorter(),
-               new QuickSorter()
-            };
-
-            for (Sorter sorter : Arrays.asList(sorters)) {
-               startTimeNanos = System.nanoTime();
-               sortedList = sorter.sort(testListEntry.getValue());
-               endTimeNanos = System.nanoTime();
-               writeSortedList(sortedList, testListEntry.getKey(), sorter.type(), endTimeNanos - startTimeNanos);
-            }
+            writeSortedList(sortedList, testListEntry.getKey(), sorter.type(), endTimeNanos - startTimeNanos);
          }
       }
    }
@@ -298,8 +294,10 @@ public final class Sort {
       }
 
       try {
-         Sort sortTester = new Sort(args[0].toLowerCase(), Paths.get(args[1]), Paths.get(args[2]));
-         sortTester._verbose = (args.length == 4 && args[3].equalsIgnoreCase("--verbose"));
+         List<String> algoSpec = new ArrayList<String>(Arrays.asList(args).subList(2, args.length));
+         boolean verbose = algoSpec.remove("--verbose");
+         Sort sortTester = new Sort(algoSpec, Paths.get(args[0]), Paths.get(args[1]));
+         sortTester._verbose = verbose;
          sortTester.runTest();
       } catch (Exception ex) {
          System.out.println(ex.getMessage());
@@ -307,18 +305,19 @@ public final class Sort {
       }
    }
    public static void usage() {
-      System.out.println("Usage: java Sort <algorithm> <test_directory> <output_directory> [--verbose]");
+      System.out.println("Usage: java Sort <test_directory> <output_directory> <algorithm>[ <algorithm>...]  [--verbose]");
       System.out.println("   where:");
-      System.out.println("      <algorithm> is one of:");
+      System.out.println("      <test_directory> is the path of the directory containing test files with data to be sorted.");
+      System.out.println("      <output_directory> is the path of the directory to which sorted output files will be written.");
+      System.out.println("      <algorithm> is one or more of:");
       System.out.println("         -b - bubble sort");
       System.out.println("         -s - selection sort");
       System.out.println("         -i - insertion sort");
       System.out.println("         -m - merge sort");
       System.out.println("         -h - heap sort");
       System.out.println("         -q - quick sort");
-      System.out.println("         --ALL - run all of the above algorithms");
-      System.out.println("      <test_directory> is the path of the directory containing test files with data to be sorted.");
-      System.out.println("      <output_directory> is the path of the directory to which sorted output files will be written.");
+      System.out.println("       or:");
+      System.out.println("         --all - run all of the above algorithms");
       System.exit(-1);
    }
 }
