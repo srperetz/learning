@@ -1,0 +1,7 @@
+*.class
+*.jar
+/eclipse
+/java/sorting/output
+/java/Pix/nbproject/private/
+/java/Pix/build/
+/java/Pix/dist/
