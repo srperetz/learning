@@ -2,7 +2,7 @@ var http = require('http');
 var bufferList = require('bl');
 
 if (process.argv.length < 3) {
-   return console.err("Specify URL");
+   return console.error("Specify URL");
 }
 
 httpGetFunc = function(response) {
@@ -24,5 +24,5 @@ processHttpGetError = function(err) {
 try {
    http.get(process.argv[2], httpGetFunc);
 } catch (err) {
-   console.err(err);
+   console.error(err);
 }
