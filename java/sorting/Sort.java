@@ -131,16 +131,53 @@ public final class Sort {
       public List<K> sort(List<K> listToSort) throws Exception {
          if (_verbose) System.out.println("Heap Sorting");
 
-         List<K> sortedList = listToSort;
+         List<K> sortedList = new LinkedList<>(listToSort);
 
          // sort
+         heapify(sortedList);
+         for (int endIndex = sortedList.size() - 1; endIndex > 0; ) {
+            // Move top node of heap (max value) to end of list:
+            swap(sortedList, 0, endIndex);
+
+            // New heap is reduced in size by 1. Restore newly shortened heap:
+            siftDown(sortedList, 0, --endIndex);
+         }
 
          return sortedList;
       }
 
+      private void heapify(List<K> list) {
+         // start at parent of last element in list
+         int endIndex = list.size() - 1;
+         for (int startIndex = parentIndex(endIndex); startIndex >= 0; startIndex--) {
+            siftDown(list, startIndex, endIndex);
+         }
+      }
+
+      private void siftDown(List<K> list, int startIndex, int endIndex) {
+         int rootIndex = startIndex;
+         for (int leftChildIndex = leftChildIndex(rootIndex), rightChildIndex = leftChildIndex + 1;
+                  leftChildIndex <= endIndex;
+                  leftChildIndex = leftChildIndex(++rootIndex), rightChildIndex = leftChildIndex + 1) {
+            int swapIndex = rootIndex;
+            if (list.get(rootIndex).compareTo(list.get(leftChildIndex)) < 0)
+               swapIndex = leftChildIndex;
+
+            // See if right child (if any) is bigger than root or left child:
+            if (rightChildIndex <= endIndex
+                  && list.get(swapIndex).compareTo(list.get(rightChildIndex)) < 0)
+               swapIndex = rightChildIndex;
+
+            // Anything to swap?
+            if (swapIndex != rootIndex) {
+               swap(list, rootIndex, swapIndex);
+            }
+         }
+      }
+
       private int parentIndex(int i) { return Math.floorDiv(i - 1, 2); }
       private int leftChildIndex(int i) { return (2 * i) + 1; }
-      private int rightChildIndex(int i) { return (2 * i) + 2; }
+      //private int rightChildIndex(int i) { return (2 * i) + 2; }
    }
 
    private class QuickSorter<K extends Comparable<K>> implements Sorter<K> {
@@ -149,11 +186,62 @@ public final class Sort {
       public List<K> sort(List<K> listToSort) throws Exception {
          if (_verbose) System.out.println("Quick Sorting");
 
-         List<K> sortedList = listToSort;
+         List<K> sortedList = new LinkedList<>(listToSort);
 
          // sort
+         quickSort(sortedList, 0, sortedList.size() - 1);
 
          return sortedList;
+      }
+
+      private void quickSort(List<K> list, int startIndex, int endIndex) {
+         int pivotIndex = partition(list, startIndex, endIndex);
+         quickSort(list, startIndex, pivotIndex - 1);
+         quickSort(list, pivotIndex + 1, endIndex);
+      }
+
+      private int partition(List<K> list, int startIndex, int endIndex) {
+         int pivotIndex = choosePivotIndex(list, startIndex, endIndex);
+         K pivotValue = list.get(pivotIndex);
+
+         // stash pivot value at end of list:
+         swap(list, pivotIndex, endIndex);
+
+         // sort rest of list based on pivot value:
+         int swapIndex = startIndex;
+         for (int i = startIndex; i < endIndex; i++) {
+            if (list.get(i).compareTo(pivotValue) <= 0) {
+               swap(list, swapIndex, i);
+               swapIndex++;
+            }
+         }
+
+         // swap pivot value back from end of list to last swapIndex:
+         swap(list, swapIndex, endIndex);
+
+         // return new pivot index:
+         return swapIndex;
+      }
+
+      private int choosePivotIndex(List<K> list, int startIndex, int endIndex) {
+         int middleIndex = (startIndex + endIndex) / 2;
+         K vStart = list.get(startIndex);
+         K vMiddle = list.get(middleIndex);
+         K vEnd = list.get(endIndex);
+
+         List<K> medianizer = new ArrayList<>(3);
+         medianizer.add(vStart);
+         medianizer.add(vMiddle);
+         medianizer.add(vEnd);
+         Collections.sort(medianizer);
+         K vMedian = medianizer.get(1);
+
+         return
+            vMiddle.compareTo(vMedian) == 0
+               ? middleIndex
+               : vEnd.compareTo(vMedian) == 0
+                  ? endIndex
+                  : startIndex;
       }
    }
 
@@ -283,7 +371,7 @@ public final class Sort {
             startTimeNanos = System.nanoTime();
             sortedList = sorter.sort(testListEntry.getValue());
             endTimeNanos = System.nanoTime();
-            writeSortedList(sortedList, testListEntry.getKey(), sorter.type(), endTimeNanos - startTimeNanos);
+            writeSortedList(sortedList, testListEntry.getKey(), sorter.type().substring(0,1), endTimeNanos - startTimeNanos);
          }
       }
    }
