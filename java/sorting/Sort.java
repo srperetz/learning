@@ -195,6 +195,7 @@ public final class Sort {
       }
 
       private void quickSort(List<K> list, int startIndex, int endIndex) {
+         if (startIndex >= endIndex) return;
          int pivotIndex = partition(list, startIndex, endIndex);
          quickSort(list, startIndex, pivotIndex - 1);
          quickSort(list, pivotIndex + 1, endIndex);
@@ -246,6 +247,7 @@ public final class Sort {
    }
 
    static <K> void swap(List<K> l, int i, int j) {
+      if (i == j) return;
       K temp = l.get(i);
       l.set(i, l.get(j));
       l.set(j, temp);
