@@ -2,8 +2,6 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 
-import static java.util.Collections.swap;
-
 public final class Sort {
    private interface Sorter<K extends Comparable<K>> {
       List<K> sort(List<K> listToSort) throws Exception;
@@ -38,22 +36,25 @@ public final class Sort {
       public List<K> sort(List<K> listToSort) throws Exception {
          if (_verbose) System.out.println("Selection Sorting");
 
+         List<K> sortedList = new LinkedList<>(listToSort);
+
          // sort
-         for (int i = 0; i < listToSort.size(); i++) {
+         for (int i = 0; i < sortedList.size(); i++) {
             int minIndex = i;
-            K minValue = listToSort.get(minIndex);
-            for (int j = i+1; j < listToSort.size(); j++) {
-               if (listToSort.get(j).compareTo(minValue) < 0) {
+            K minValue = sortedList.get(minIndex);
+            for (int j = i; j < sortedList.size(); j++) {
+               if (sortedList.get(j).compareTo(minValue) < 0) {
                   minIndex = j;
-                  minValue = listToSort.get(j);
+                  minValue = sortedList.get(j);
                }
             }
             if (minIndex > i) {
-               swap(listToSort, i, minIndex);
+               sortedList.remove(minIndex);
+               sortedList.add(i, minValue);
             }
          }
 
-         return listToSort;
+         return sortedList;
       }
    }
 
@@ -63,28 +64,22 @@ public final class Sort {
       public List<K> sort(List<K> listToSort) throws Exception {
          if (_verbose) System.out.println("Insertion Sorting");
 
+         List<K> sortedList = new LinkedList<>(listToSort);
+
          // sort
-         for (int i = 1; i < listToSort.size(); i++) {
-            K currentValue = listToSort.get(i);
+         for (int i = 1; i < sortedList.size(); i++) {
+            K currentValue = sortedList.get(i);
             for (int j = 0; j < i; j++) {
-               if (currentValue.compareTo(listToSort.get(j)) < 0) {
-                  moveItem(listToSort, i, j);
+               if (currentValue.compareTo(sortedList.get(j)) < 0) {
+                  sortedList.remove(i);
+                  sortedList.add(j, currentValue);
                   break;
                }
             }
          }
 
-         return listToSort;
+         return sortedList;
       }
-   }
-   
-   private void moveItem(List<?> listToSort, int fromIndex, int toIndex) {
-      if (fromIndex <= toIndex)
-         throw new IllegalArgumentException(
-            "moveItem: fromIndex must be > toIndex -- got fromIndex = " + fromIndex
-            + " and toIndex = " + toIndex);
-      
-      for (int i = fromIndex; i > toIndex; i--) swap(listToSort, i, i-1);
    }
 
    private class MergeSorter<K extends Comparable<K>> implements Sorter<K> {
@@ -136,17 +131,19 @@ public final class Sort {
       public List<K> sort(List<K> listToSort) throws Exception {
          if (_verbose) System.out.println("Heap Sorting");
 
+         List<K> sortedList = new LinkedList<>(listToSort);
+
          // sort
-         heapify(listToSort);
-         for (int endIndex = listToSort.size() - 1; endIndex > 0; ) {
+         heapify(sortedList);
+         for (int endIndex = sortedList.size() - 1; endIndex > 0; ) {
             // Move top node of heap (max value) to end of list:
-            swap(listToSort, 0, endIndex);
+            swap(sortedList, 0, endIndex);
 
             // New heap is reduced in size by 1. Restore newly shortened heap:
-            siftDown(listToSort, 0, --endIndex);
+            siftDown(sortedList, 0, --endIndex);
          }
 
-         return listToSort;
+         return sortedList;
       }
 
       private void heapify(List<K> list) {
@@ -189,10 +186,12 @@ public final class Sort {
       public List<K> sort(List<K> listToSort) throws Exception {
          if (_verbose) System.out.println("Quick Sorting");
 
-         // sort
-         quickSort(listToSort, 0, listToSort.size() - 1);
+         List<K> sortedList = new LinkedList<>(listToSort);
 
-         return listToSort;
+         // sort
+         quickSort(sortedList, 0, sortedList.size() - 1);
+
+         return sortedList;
       }
 
       private void quickSort(List<K> list, int startIndex, int endIndex) {
@@ -231,21 +230,27 @@ public final class Sort {
          K vMiddle = list.get(middleIndex);
          K vEnd = list.get(endIndex);
 
-         if      ((vStart.compareTo(vMiddle) <= 0 && vMiddle.compareTo(vEnd) <= 0)
-                    ||
-                  (vEnd.compareTo(vMiddle) <= 0 && vMiddle.compareTo(vStart) <= 0))
-            return middleIndex;
+         List<K> medianizer = new ArrayList<>(3);
+         medianizer.add(vStart);
+         medianizer.add(vMiddle);
+         medianizer.add(vEnd);
+         Collections.sort(medianizer);
+         K vMedian = medianizer.get(1);
 
-         else if ((vMiddle.compareTo(vStart) <= 0 && vStart.compareTo(vEnd) <= 0)
-                    ||
-                  (vEnd.compareTo(vStart) <= 0 && vStart.compareTo(vMiddle) <= 0))
-            return startIndex;
-
-         else /* ((vStart.compareTo(vEnd) <= 0 && vEnd.compareTo(vMiddle) <= 0)
-                    ||
-                  (vMiddle.compareTo(vEnd) <= 0 && vEnd.compareTo(vStart) <= 0))*/
-            return endIndex;
+         return
+            vMiddle.compareTo(vMedian) == 0
+               ? middleIndex
+               : vEnd.compareTo(vMedian) == 0
+                  ? endIndex
+                  : startIndex;
       }
+   }
+
+   static <K> void swap(List<K> l, int i, int j) {
+      if (i == j) return;
+      K temp = l.get(i);
+      l.set(i, l.get(j));
+      l.set(j, temp);
    }
 
    private static final int EST_BYTES_PER_LINE = 20;
